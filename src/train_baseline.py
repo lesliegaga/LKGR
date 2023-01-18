@@ -206,7 +206,6 @@ def Exp_run(args):
         test_file = 'test.txt'
         logging.info(train_file)
         best_epoch, k_list, \
-        eval_precision_list, eval_recall_list, eval_ndcg_list, \
         test_precision_list, test_recall_list, test_ndcg_list = exp_i(args, train_file, test_file, logging)
 
         logging.info('')
