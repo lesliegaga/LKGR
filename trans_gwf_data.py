@@ -24,7 +24,8 @@ if __name__ == '__main__':
             if len(parts) <= 1:
                 continue
             user = parts[0]
-            for item in range(1, len(parts)):
+            for i in range(1, len(parts)):
+                item = parts[i]
                 # f.write("%s\n" % " ".join([user, item, "1"]))
                 user_item_dict.setdefault(user, set())
                 user_item_dict[user].add(item)
@@ -37,7 +38,8 @@ if __name__ == '__main__':
             if len(parts) <= 1:
                 continue
             user = parts[0]
-            for item in range(1, len(parts)):
+            for i in range(1, len(parts)):
+                item = parts[i]
                 f2.write("%s\n" % " ".join([user, item, "1"]))
                 if train == 1:
                     neg_item = sample_neg_items_for_u(user, 1, n_item, user_item_dict)
