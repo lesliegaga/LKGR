@@ -6,7 +6,7 @@ def sample_neg_items_for_u(u, num, n_items, train_user_dict):
     neg_items = []
     while True:
         if len(neg_items) == num: break
-        neg_i_id = np.random.randint(low=0, high=n_items, size=1)[0]
+        neg_i_id = str(np.random.randint(low=0, high=n_items, size=1)[0])
 
         if neg_i_id not in train_user_dict[u] and neg_i_id not in neg_items:
             neg_items.append(neg_i_id)
