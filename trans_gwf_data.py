@@ -31,6 +31,7 @@ if __name__ == '__main__':
                 user_item_dict[user].add(item)
                 if item == "":
                     print("item empty:", line, i, parts)
+                    continue
                 n_item = max(n_item, int(item))
     n_item += 1
 
@@ -42,6 +43,9 @@ if __name__ == '__main__':
             user = parts[0]
             for i in range(1, len(parts)):
                 item = parts[i]
+                if item == "":
+                    print("item empty:", line, i, parts)
+                    continue
                 f2.write("%s\n" % " ".join([user, item, "1"]))
                 if train == 1:
                     neg_item = sample_neg_items_for_u(user, 1, n_item, user_item_dict)
