@@ -20,7 +20,7 @@ if __name__ == '__main__':
     user_item_dict = {}
     with open(input_file) as f:
         for line in f:
-            parts = line.strip('\n').split('\t')
+            parts = line.strip('\n').split(' ')
             if len(parts) <= 1:
                 continue
             user = parts[0]
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     with open(input_file) as f, open(output_file, "w") as f2:
         for line in f:
-            parts = line.strip('\n').split('\t')
+            parts = line.strip('\n').split(' ')
             if len(parts) <= 1:
                 continue
             user = parts[0]
