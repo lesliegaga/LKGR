@@ -29,6 +29,8 @@ if __name__ == '__main__':
                 # f.write("%s\n" % " ".join([user, item, "1"]))
                 user_item_dict.setdefault(user, set())
                 user_item_dict[user].add(item)
+                if item == "":
+                    print("item empty:", line, i, parts)
                 n_item = max(n_item, int(item))
     n_item += 1
 
