@@ -43,4 +43,4 @@ if __name__ == '__main__':
                 f2.write("%s\n" % " ".join([user, item, "1"]))
                 if train == 1:
                     neg_item = sample_neg_items_for_u(user, 1, n_item, user_item_dict)
-                    f2.write("%s\n" % " ".join([user, neg_item, "0"]))
+                    f2.write("%s\n" % " ".join([user, neg_item[0], "0"]))
