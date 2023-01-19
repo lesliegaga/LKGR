@@ -91,7 +91,7 @@ def ranklist_by_heapq(user_pos_test, test_items, rating, Ks):
     auc = 0.
     return r, auc
 
-def test(model, n_item, user_list, train_record, test_record, k_list):
+def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
     model.eval()
     result = {'precision': np.zeros(len(k_list)), 'recall': np.zeros(len(k_list)), 'ndcg': np.zeros(len(k_list)),
@@ -154,7 +154,9 @@ def test(model, n_item, user_list, train_record, test_record, k_list):
         with torch.no_grad():
             user_index = torch.LongTensor(user_list)
             item_index = torch.LongTensor(np.arange(n_item))
-            rate_batch = model('batch_score', user_index, item_index)
+            user_index = user_index.to(device)
+            item_index = item_index.to(device)
+            rate_batch = model('batch_score', user_index, item_index).cpu().numpy()
 
         user_batch_rating_uid = zip(rate_batch, user_batch)
         batch_result = pool.map(target(train_record, test_record, n_item, k_list), user_batch_rating_uid)
@@ -272,7 +274,7 @@ def exp_i(args, train_file, test_file, logging):
         time0 = time()
 
         user_list, train_record, test_record, item_set, k_list = topk_setting(train_data, test_data, n_item)
-        test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list)
+        test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list, device)
         # test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
         #                                                            test_record, k_list, device)
         time1 = time() - time0
