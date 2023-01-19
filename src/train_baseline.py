@@ -144,7 +144,7 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
         return test_one_user
 
-    for u_batch_id in range(n_user_batchs):
+    for u_batch_id in tqdm(range(n_user_batchs), desc="test n_user_batchs"):
         start = u_batch_id * u_batch_size
         end = (u_batch_id + 1) * u_batch_size
 
