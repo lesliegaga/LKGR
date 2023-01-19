@@ -145,6 +145,11 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
         return test_one_user
 
+    my_device0 = torch.cuda.device(0)
+    my_device1 = torch.cuda.device(1)
+    print('check_6', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+          torch.cuda.memory_summary(device=my_device1, abbreviated=False))
+
     for u_batch_id in tqdm(range(n_user_batchs), desc="test n_user_batchs"):
         start = u_batch_id * u_batch_size
         end = (u_batch_id + 1) * u_batch_size
@@ -156,7 +161,11 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
             item_index = torch.LongTensor(np.arange(n_item))
             user_index = user_index.to(device)
             item_index = item_index.to(device)
+            print('check_7', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+                  torch.cuda.memory_summary(device=my_device1, abbreviated=False))
             rate_batch = model('batch_score', user_index, item_index).cpu().numpy()
+            print('check_8', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+                  torch.cuda.memory_summary(device=my_device1, abbreviated=False))
 
         user_batch_rating_uid = zip(rate_batch, user_batch)
         batch_result = pool.map(target(train_record, test_record, n_item, k_list), user_batch_rating_uid)
@@ -239,6 +248,9 @@ def exp_i(args, train_file, test_file, logging):
     adj_relation = adj_relation.to(device)
     model.set_adj_matrix(adj_u2i=adj_u2i, adj_i2u=adj_i2u, adj_entity=adj_i2e, adj_relation=adj_relation)
     print("init model_test.device", next(model.parameters()).device)
+    my_device0 = torch.cuda.device(0)
+    my_device1 = torch.cuda.device(1)
+    print('check_1', torch.cuda.memory_summary(device=my_device0, abbreviated=False), torch.cuda.memory_summary(device=my_device1, abbreviated=False))
 
     for epoch in range(1, args.n_epochs + 1):
         start = 0
@@ -259,6 +271,8 @@ def exp_i(args, train_file, test_file, logging):
             item_indices = item_indices.to(device)
             labels = labels.to(device)
             loss = model('cal_loss', user_indices, item_indices, labels)
+            print('check_2', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+                  torch.cuda.memory_summary(device=my_device1, abbreviated=False))
 
             loss.backward()
 
@@ -272,14 +286,23 @@ def exp_i(args, train_file, test_file, logging):
             start += args.batch_size
         time_train = time() - time0
 
+        print('check_3', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+              torch.cuda.memory_summary(device=my_device1, abbreviated=False))
+
         #  # top-K evaluation
         time0 = time()
 
         user_list, train_record, test_record, item_set, k_list = topk_setting(train_data, test_data, n_item)
+        print('check_4', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+              torch.cuda.memory_summary(device=my_device1, abbreviated=False))
+
         model_test = model.to(device2)
         model_test.change_adj_matrix_device(device2)
         print("change device2 model_test.device", next(model_test.parameters()).device)
         print("change device2 model.device", next(model.parameters()).device)
+        print('check_5', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+              torch.cuda.memory_summary(device=my_device1, abbreviated=False))
+
         test_precision, test_recall, test_ndcg = test(model_test, n_item, user_list, train_record, test_record, k_list, device2)
         model.to(device)
         model.change_adj_matrix_device(device)
