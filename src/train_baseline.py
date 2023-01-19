@@ -275,8 +275,8 @@ def exp_i(args, train_file, test_file, logging):
         time0 = time()
 
         user_list, train_record, test_record, item_set, k_list = topk_setting(train_data, test_data, n_item)
-        model.to(device2)
-        test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list, device2)
+        model_test = model.to(device2)
+        test_precision, test_recall, test_ndcg = test(model_test, n_item, user_list, train_record, test_record, k_list, device2)
         model.to(device)
         # test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
         #                                                            test_record, k_list, device)
