@@ -238,6 +238,7 @@ def exp_i(args, train_file, test_file, logging):
     adj_i2e = adj_i2e.to(device)
     adj_relation = adj_relation.to(device)
     model.set_adj_matrix(adj_u2i=adj_u2i, adj_i2u=adj_i2u, adj_entity=adj_i2e, adj_relation=adj_relation)
+    print("init model_test.device", model.device)
 
     for epoch in range(1, args.n_epochs + 1):
         start = 0
@@ -276,8 +277,14 @@ def exp_i(args, train_file, test_file, logging):
 
         user_list, train_record, test_record, item_set, k_list = topk_setting(train_data, test_data, n_item)
         model_test = model.to(device2)
+        model_test.change_adj_matrix_device(device2)
+        print("change device2 model_test.device", model_test.device)
+        print("change device2 model.device", model.device)
         test_precision, test_recall, test_ndcg = test(model_test, n_item, user_list, train_record, test_record, k_list, device2)
         model.to(device)
+        model.change_adj_matrix_device(device)
+        print("change device model_test.device", model_test.device)
+        print("change device model.device", model.device)
         # test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
         #                                                            test_record, k_list, device)
         time1 = time() - time0

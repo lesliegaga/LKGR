@@ -62,6 +62,14 @@ class LKGR(torch.nn.Module):
         self.adj_entity = adj_entity
         self.adj_relation = adj_relation
 
+
+    def change_adj_matrix_device(self, device):
+        self.adj_u2i = self.adj_u2i.to(device)
+        self.adj_i2u = self.adj_i2u.to(device)
+        self.adj_entity = self.adj_entity.to(device)
+        self.adj_relation = self.adj_relation.to(device)
+
+
     def _get_user_ngh(self, item_index):
         """
         :param  item_index:         [batch_size]
