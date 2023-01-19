@@ -151,7 +151,6 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
         user_batch = test_users[start: end]
 
-        item_batch = range(n_item)
         with torch.no_grad():
             user_index = torch.LongTensor(user_list)
             item_index = torch.LongTensor(np.arange(n_item))
