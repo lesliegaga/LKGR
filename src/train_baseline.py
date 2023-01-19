@@ -151,7 +151,7 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
     my_device1 = 1
     # print('check_6', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
     #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-    print('ckeck_6', torch.cuda.memory_allocated(0), torch.cuda.memory_allocated(1))
+    print('ckeck_6', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
     for u_batch_id in tqdm(range(n_user_batchs), desc="test n_user_batchs"):
         start = u_batch_id * u_batch_size
@@ -166,11 +166,11 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
             item_index = item_index.to(device)
             # print('check_7', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
             #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-            print('ckeck_7', torch.cuda.memory_allocated(0), torch.cuda.memory_allocated(1))
+            print('ckeck_7', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
             rate_batch = model('batch_score', user_index, item_index).cpu().numpy()
             # print('check_8', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
             #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-            print('ckeck_8', torch.cuda.memory_allocated(0), torch.cuda.memory_allocated(1))
+            print('ckeck_8', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         user_batch_rating_uid = zip(rate_batch, user_batch)
         batch_result = pool.map(target(train_record, test_record, n_item, k_list), user_batch_rating_uid)
@@ -258,7 +258,7 @@ def exp_i(args, train_file, test_file, logging):
     my_device0 = 0
     my_device1 = 1
     # print('check_1', torch.cuda.memory_summary(device=my_device0, abbreviated=False), torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-    print('ckeck_1', torch.cuda.memory_allocated(0), torch.cuda.memory_allocated(1))
+    print('ckeck_1', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
     for epoch in range(1, args.n_epochs + 1):
         start = 0
         iter = 0
@@ -295,7 +295,7 @@ def exp_i(args, train_file, test_file, logging):
 
         # print('check_3', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
         #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-        print('ckeck_3', torch.cuda.memory_allocated(0), torch.cuda.memory_allocated(1))
+        print('ckeck_3', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         #  # top-K evaluation
         time0 = time()
@@ -303,7 +303,7 @@ def exp_i(args, train_file, test_file, logging):
         user_list, train_record, test_record, item_set, k_list = topk_setting(train_data, test_data, n_item)
         # print('check_4', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
         #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-        print('ckeck_4', torch.cuda.memory_allocated(0), torch.cuda.memory_allocated(1))
+        print('ckeck_4', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         model_test = model.to(device2)
         model_test.change_adj_matrix_device(device2)
@@ -311,7 +311,7 @@ def exp_i(args, train_file, test_file, logging):
         print("change device2 model.device", next(model.parameters()).device)
         # print('check_5', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
         #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-        print('ckeck_5', torch.cuda.memory_allocated(0), torch.cuda.memory_allocated(1))
+        print('ckeck_5', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         test_precision, test_recall, test_ndcg = test(model_test, n_item, user_list, train_record, test_record, k_list, device2)
         model.to(device)
