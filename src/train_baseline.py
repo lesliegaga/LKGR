@@ -208,7 +208,8 @@ def exp_i(args, train_file, test_file, logging):
 
     # gpu/cpu
     use_cuda = torch.cuda.is_available()
-    device = torch.device("cuda" if use_cuda else "cpu")
+    device = torch.device("cuda:0" if use_cuda else "cpu")
+    device2 = torch.device("cuda:1" if use_cuda else "cpu")
     n_gpu = torch.cuda.device_count()
     if n_gpu > 0:
         torch.cuda.manual_seed_all(args.seed)
@@ -275,7 +276,9 @@ def exp_i(args, train_file, test_file, logging):
         time0 = time()
 
         user_list, train_record, test_record, item_set, k_list = topk_setting(train_data, test_data, n_item)
-        test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list, device)
+        model.to(device2)
+        test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list, device2)
+        model.to(device)
         # test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
         #                                                            test_record, k_list, device)
         time1 = time() - time0
