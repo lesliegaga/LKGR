@@ -99,7 +99,8 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
     pool = multiprocessing.Pool(cores)
 
-    BATCH_SIZE = model.batch_size
+    # BATCH_SIZE = model.batch_size
+    BATCH_SIZE = 8192
     u_batch_size = BATCH_SIZE * 2
     i_batch_size = BATCH_SIZE
 
