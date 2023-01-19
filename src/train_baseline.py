@@ -9,6 +9,7 @@ from utility.log_helper import *
 import multiprocessing
 import heapq
 import src.metrics as metrics
+from functools import partial
 
 cores = multiprocessing.cpu_count() // 2
 
@@ -91,6 +92,38 @@ def ranklist_by_heapq(user_pos_test, test_items, rating, Ks):
     auc = 0.
     return r, auc
 
+
+def test_one_user(train_record, test_record, n_item, Ks, x):
+    # user u's ratings for user u
+    rating = x[0]
+    # uid
+    u = x[1]
+    # user u's items in the training set
+    try:
+        training_items = train_record[u]
+    except Exception:
+        training_items = set()
+    # user u's items in the test set
+    user_pos_test = test_record[u]
+
+    all_items = set(range(n_item))
+
+    test_items = list(all_items - training_items)
+
+    r, auc = ranklist_by_heapq(user_pos_test, test_items, rating, Ks)
+
+    # # .......checking.......
+    # try:
+    #     assert len(user_pos_test) != 0
+    # except Exception:
+    #     print(u)
+    #     print(training_items)
+    #     print(user_pos_test)
+    #     exit()
+    # # .......checking.......
+
+    return get_performance(user_pos_test, r, auc, Ks)
+
 def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
     model.eval()
@@ -110,40 +143,7 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
     count = 0
 
-    def target(train_record, test_record, n_item, Ks):
-        def test_one_user(x):
-            # user u's ratings for user u
-            rating = x[0]
-            # uid
-            u = x[1]
-            # user u's items in the training set
-            try:
-                training_items = train_record[u]
-            except Exception:
-                training_items = set()
-            # user u's items in the test set
-            user_pos_test = test_record[u]
-
-            all_items = set(range(n_item))
-
-
-            test_items = list(all_items - training_items)
-
-            r, auc = ranklist_by_heapq(user_pos_test, test_items, rating, Ks)
-
-            # # .......checking.......
-            # try:
-            #     assert len(user_pos_test) != 0
-            # except Exception:
-            #     print(u)
-            #     print(training_items)
-            #     print(user_pos_test)
-            #     exit()
-            # # .......checking.......
-
-            return get_performance(user_pos_test, r, auc, Ks)
-
-        return test_one_user
+    func = partial(test_one_user, train_record, test_record, n_item, k_list)
 
     # my_device0 = torch.cuda.device(0)
     # my_device1 = torch.cuda.device(1)
@@ -151,7 +151,7 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
     my_device1 = 1
     # print('check_6', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
     #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-    print('ckeck_6', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+    # print('ckeck_6', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
     for u_batch_id in tqdm(range(n_user_batchs), desc="test n_user_batchs"):
         start = u_batch_id * u_batch_size
@@ -166,14 +166,14 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
             item_index = item_index.to(device)
             # print('check_7', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
             #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-            print('ckeck_7', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+            # print('ckeck_7', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
             rate_batch = model('batch_score2', user_index, item_index).cpu().numpy()
             # print('check_8', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
             #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
-            print('ckeck_8', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+            # print('ckeck_8', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         user_batch_rating_uid = zip(rate_batch, user_batch)
-        batch_result = pool.map(target(train_record, test_record, n_item, k_list), user_batch_rating_uid)
+        batch_result = pool.map(func, user_batch_rating_uid)
         count += len(batch_result)
 
         for re in batch_result:
