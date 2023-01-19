@@ -275,8 +275,8 @@ def exp_i(args, train_file, test_file, logging):
             item_indices = item_indices.to(device)
             labels = labels.to(device)
             loss = model('cal_loss', user_indices, item_indices, labels)
-            print('check_2', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
-                  torch.cuda.memory_summary(device=my_device1, abbreviated=False))
+            # print('check_2', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+            #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
 
             loss.backward()
 
