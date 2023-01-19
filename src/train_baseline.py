@@ -145,8 +145,10 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
         return test_one_user
 
-    my_device0 = torch.cuda.device(0)
-    my_device1 = torch.cuda.device(1)
+    # my_device0 = torch.cuda.device(0)
+    # my_device1 = torch.cuda.device(1)
+    my_device0 = 0
+    my_device1 = 1
     print('check_6', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
           torch.cuda.memory_summary(device=my_device1, abbreviated=False))
 
@@ -248,8 +250,10 @@ def exp_i(args, train_file, test_file, logging):
     adj_relation = adj_relation.to(device)
     model.set_adj_matrix(adj_u2i=adj_u2i, adj_i2u=adj_i2u, adj_entity=adj_i2e, adj_relation=adj_relation)
     print("init model_test.device", next(model.parameters()).device)
-    my_device0 = torch.cuda.device(0)
-    my_device1 = torch.cuda.device(1)
+    # my_device0 = torch.cuda.device(0)
+    # my_device1 = torch.cuda.device(1)
+    my_device0 = 0
+    my_device1 = 1
     print('check_1', torch.cuda.memory_summary(device=my_device0, abbreviated=False), torch.cuda.memory_summary(device=my_device1, abbreviated=False))
 
     for epoch in range(1, args.n_epochs + 1):
