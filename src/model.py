@@ -237,6 +237,28 @@ class LKGR(torch.nn.Module):
         all_score[torch.isnan(all_score)] = 0
         return all_score
 
+    def _batch_score2(self, user_index, item_index):
+        self.batch_size = user_index.shape[0]
+        new_all_user_embedding = self._aggregate_for_user(user_index)
+        # print('ckeck_9', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+
+        self.batch_size = item_index.shape[0]
+        user_ngh = self._get_user_ngh(item_index)
+        # print('ckeck_10', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        entities, relations = self._get_entity_ngh(item_index)
+        # print('ckeck_11', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        all_item_embedding = self.entity_embedding(item_index)
+        # print('ckeck_12', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+
+        new_all_item_embeddings = self._aggregate_for_item(all_item_embedding, user_ngh, entities, relations)
+
+        # print('ckeck_13', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        new_all_user_embedding = self.manifold.logmap0(new_all_user_embedding, self.c)
+        print('ckeck_14', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        score = torch.mm(new_all_user_embedding, new_all_item_embeddings.t())
+        print('ckeck_15', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        return score
+
     def _cal_loss_CE(self, user_index, item_index, labels):
         # using cross entropy loss with negative sampling
         score = self._get_score(user_index, item_index)
@@ -259,6 +281,8 @@ class LKGR(torch.nn.Module):
             return self._get_score(*input)
         elif mode == 'batch_score':
             return self._batch_score(*input)
+        elif mode == 'batch_score2':
+            return self._batch_score2(*input)
         else:
             raise NotImplementedError
 

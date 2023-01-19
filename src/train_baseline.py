@@ -99,8 +99,8 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
 
     pool = multiprocessing.Pool(cores)
 
-    BATCH_SIZE = model.batch_size
-    # BATCH_SIZE = 8192
+    # BATCH_SIZE = model.batch_size
+    BATCH_SIZE = 8192
     u_batch_size = BATCH_SIZE * 2
     i_batch_size = BATCH_SIZE
 
@@ -167,7 +167,7 @@ def test(model, n_item, user_list, train_record, test_record, k_list, device):
             # print('check_7', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
             #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
             print('ckeck_7', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
-            rate_batch = model('batch_score', user_index, item_index).cpu().numpy()
+            rate_batch = model('batch_score2', user_index, item_index).cpu().numpy()
             # print('check_8', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
             #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
             print('ckeck_8', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
