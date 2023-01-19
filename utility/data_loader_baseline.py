@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import torch
+from tqdm import tqdm
 
 
 def data_split(args):
@@ -116,7 +117,7 @@ def construct_adj(args, n_user, n_item, n_entity, kg_dict, user_item_dict, item_
     adj_u2i = np.zeros([n_user, args.sample_size], dtype=np.int64)
     adj_i2u = np.zeros([n_item, args.sample_size], dtype=np.int64)
 
-    for user in range(n_user):
+    for user in tqdm(range(n_user), "loop user"):
         if user not in user_item_dict:
             adj_u2i[user] = [0] # simple fill in
         else:
@@ -128,7 +129,7 @@ def construct_adj(args, n_user, n_item, n_entity, kg_dict, user_item_dict, item_
                 sampled_indices = np.random.choice(list(range(n_items)), size=args.sample_size, replace=True)
             adj_u2i[user] = items[sampled_indices]
 
-    for item in range(n_item):
+    for item in tqdm(range(n_item), "loop item"):
         if item not in item_user_dict:
             adj_i2u[item] = [0]
         else:
