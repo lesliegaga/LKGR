@@ -197,7 +197,7 @@ def exp_i(args, train_file, test_file, logging):
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
 
     train_data, test_data, kg_dict, user_item_dict, item_user_dict, n_relation, n_entity, n_triplet \
         = load_data(args, train_file, test_file)
