@@ -29,7 +29,7 @@ def topk_evaluate(model, n_item, user_list, train_record, test_record, k_list, d
         item_index = torch.LongTensor(np.arange(n_item))
         user_index = user_index.to(device)
         item_index = item_index.to(device)
-        score = model('batch_score', user_index, item_index)
+        score = model('batch_score2', user_index, item_index)
         # score = model('get_rank_score', user_index, item_index)
         for i in range(len(user_list)):
             user = user_list[i]
@@ -211,7 +211,7 @@ def exp_i(args, train_file, test_file, logging):
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0,1'
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
 
     train_data, test_data, kg_dict, user_item_dict, item_user_dict, n_relation, n_entity, n_triplet \
         = load_data(args, train_file, test_file)
@@ -313,13 +313,13 @@ def exp_i(args, train_file, test_file, logging):
         #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
         print('ckeck_5', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
-        test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list, device)
+        # test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list, device)
         # model.to(device)
         # model.change_adj_matrix_device(device)
         # print("change device model_test.device", next(model.parameters()).device)
         # print("change device model.device", next(model.parameters()).device)
-        # test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
-        #                                                            test_record, k_list, device)
+        test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
+                                                                   test_record, k_list, device)
         time1 = time() - time0
 
 
