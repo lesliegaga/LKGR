@@ -29,7 +29,7 @@ def topk_evaluate(model, n_item, user_list, train_record, test_record, k_list, d
         item_index = torch.LongTensor(np.arange(n_item))
         user_index = user_index.to(device)
         item_index = item_index.to(device)
-        score = model('batch_score2', user_index, item_index)
+        score = model('batch_score2', user_index, item_index).cpu()
         # score = model('get_rank_score', user_index, item_index)
         for i in range(len(user_list)):
             user = user_list[i]
