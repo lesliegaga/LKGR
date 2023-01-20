@@ -221,8 +221,8 @@ def exp_i(args, train_file, test_file, logging):
 
     # gpu/cpu
     use_cuda = torch.cuda.is_available()
-    device = torch.device("cuda:0" if use_cuda else "cpu")
-    device2 = torch.device("cuda:1" if use_cuda else "cpu")
+    device = torch.device("cuda" if use_cuda else "cpu")
+    # device2 = torch.device("cuda:1" if use_cuda else "cpu")
     n_gpu = torch.cuda.device_count()
     if n_gpu > 0:
         torch.cuda.manual_seed_all(args.seed)
