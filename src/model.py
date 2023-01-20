@@ -210,28 +210,28 @@ class LKGR(torch.nn.Module):
     def _batch_score(self, user_index, item_index):
         self.batch_size = user_index.shape[0]
         new_all_user_embedding = self._aggregate_for_user(user_index)
-        print('ckeck_9', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_9', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         self.batch_size = item_index.shape[0]
         user_ngh = self._get_user_ngh(item_index)
-        print('ckeck_10', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_10', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
         entities, relations = self._get_entity_ngh(item_index)
-        print('ckeck_11', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_11', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
         all_item_embedding = self.entity_embedding(item_index)
-        print('ckeck_12', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_12', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         new_all_item_embeddings = self._aggregate_for_item(all_item_embedding, user_ngh, entities, relations)
 
-        print('ckeck_13', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_13', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
         new_all_user_embedding = self.manifold.logmap0(new_all_user_embedding, self.c)
-        print('ckeck_14', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_14', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         score = torch.mm(new_all_user_embedding, new_all_item_embeddings.t())
-        print('ckeck_15', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_15', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
         all_score = torch.sigmoid(score)
-        print('ckeck_16', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_16', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
         all_score = torch.clamp(all_score, min=self.min_norm, max=self.max_norm)
-        print('ckeck_17', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_17', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
         # to avoid nan
         all_score[torch.isnan(all_score)] = 0
@@ -254,9 +254,9 @@ class LKGR(torch.nn.Module):
 
         # print('ckeck_13', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
         new_all_user_embedding = self.manifold.logmap0(new_all_user_embedding, self.c)
-        print('ckeck_14', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_14', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
         score = torch.mm(new_all_user_embedding, new_all_item_embeddings.t())
-        print('ckeck_15', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+        # print('ckeck_15', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
         return score
 
     def _cal_loss_CE(self, user_index, item_index, labels):
