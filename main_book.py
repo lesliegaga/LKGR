@@ -31,6 +31,6 @@ if __name__ == '__main__':
     saved_dir = 'logs/{}/Dim{}/'.format(args.data_name, args.node_dim)
     args.saved_dir = saved_dir
 
-    data_split(args)
+    # data_split(args)
 
     Exp_run(args)
