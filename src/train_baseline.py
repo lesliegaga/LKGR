@@ -313,13 +313,13 @@ def exp_i(args, train_file, test_file, logging):
         #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
         # print('ckeck_5', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
 
-        # test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list, device)
+        test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list, device)
         # model.to(device)
         # model.change_adj_matrix_device(device)
         # print("change device model_test.device", next(model.parameters()).device)
         # print("change device model.device", next(model.parameters()).device)
-        test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
-                                                                   test_record, k_list, device)
+        # test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
+        #                                                            test_record, k_list, device)
         time1 = time() - time0
 
 

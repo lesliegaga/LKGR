@@ -6,6 +6,13 @@ from src.model import *
 from time import time
 from utility.data_loader import *
 from utility.log_helper import *
+import multiprocessing
+import heapq
+import src.metrics as metrics
+from functools import partial
+
+cores = multiprocessing.cpu_count() // 2
+
 
 CURVATURE_THRESHOLD = 0.01
 
@@ -53,6 +60,134 @@ def topk_evaluate(model, n_item, user_list, train_record, test_record, k_list, d
     ndcg = [np.mean(ndcg_list[k]) for k in k_list]
 
     return precision, recall, ndcg
+
+def get_performance(user_pos_test, r, auc, Ks):
+    precision, recall, ndcg, hit_ratio = [], [], [], []
+
+    for K in Ks:
+        precision.append(metrics.precision_at_k(r, K))
+        recall.append(metrics.recall_at_k(r, K, len(user_pos_test)))
+        ndcg.append(metrics.ndcg_at_k(r, K, user_pos_test))
+        hit_ratio.append(metrics.hit_at_k(r, K))
+
+    return {'recall': np.array(recall), 'precision': np.array(precision),
+            'ndcg': np.array(ndcg), 'hit_ratio': np.array(hit_ratio), 'auc': auc}
+
+
+
+def ranklist_by_heapq(user_pos_test, test_items, rating, Ks):
+    item_score = {}
+    for i in test_items:
+        item_score[i] = rating[i]
+
+    K_max = max(Ks)
+    K_max_item_score = heapq.nlargest(K_max, item_score, key=item_score.get)
+
+    r = []
+    for i in K_max_item_score:
+        if i in user_pos_test:
+            r.append(1)
+        else:
+            r.append(0)
+    auc = 0.
+    return r, auc
+
+
+def test_one_user(train_record, test_record, n_item, Ks, x):
+    # user u's ratings for user u
+    rating = x[0]
+    # uid
+    u = x[1]
+    # user u's items in the training set
+    try:
+        training_items = train_record[u]
+    except Exception:
+        training_items = set()
+    # user u's items in the test set
+    user_pos_test = test_record[u]
+
+    all_items = set(range(n_item))
+
+    test_items = list(all_items - training_items)
+
+    r, auc = ranklist_by_heapq(user_pos_test, test_items, rating, Ks)
+
+    # # .......checking.......
+    # try:
+    #     assert len(user_pos_test) != 0
+    # except Exception:
+    #     print(u)
+    #     print(training_items)
+    #     print(user_pos_test)
+    #     exit()
+    # # .......checking.......
+
+    return get_performance(user_pos_test, r, auc, Ks)
+
+def test(model, n_item, user_list, train_record, test_record, k_list, device):
+
+    model.eval()
+    result = {'precision': np.zeros(len(k_list)), 'recall': np.zeros(len(k_list)), 'ndcg': np.zeros(len(k_list)),
+              'hit_ratio': np.zeros(len(k_list)), 'auc': 0.}
+
+    pool = multiprocessing.Pool(cores)
+
+    # BATCH_SIZE = model.batch_size
+    BATCH_SIZE = 8192
+    u_batch_size = BATCH_SIZE * 2
+    i_batch_size = BATCH_SIZE
+
+    test_users = user_list
+    n_test_users = len(test_users)
+    n_user_batchs = n_test_users // u_batch_size + 1
+
+    count = 0
+
+    func = partial(test_one_user, train_record, test_record, n_item, k_list)
+
+    # my_device0 = torch.cuda.device(0)
+    # my_device1 = torch.cuda.device(1)
+    my_device0 = 0
+    my_device1 = 1
+    # print('check_6', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+    #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
+    # print('ckeck_6', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+
+    for u_batch_id in tqdm(range(n_user_batchs), desc="test n_user_batchs"):
+        start = u_batch_id * u_batch_size
+        end = (u_batch_id + 1) * u_batch_size
+
+        user_batch = test_users[start: end]
+
+        with torch.no_grad():
+            user_index = torch.LongTensor(user_list)
+            item_index = torch.LongTensor(np.arange(n_item))
+            user_index = user_index.to(device)
+            item_index = item_index.to(device)
+            # print('check_7', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+            #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
+            # print('ckeck_7', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+            rate_batch = model('batch_score2', user_index, item_index).cpu().numpy()
+            # print('check_8', torch.cuda.memory_summary(device=my_device0, abbreviated=False),
+            #       torch.cuda.memory_summary(device=my_device1, abbreviated=False))
+            # print('ckeck_8', torch.cuda.memory_allocated(0) / 1000000., torch.cuda.memory_allocated(1) / 1000000.)
+
+        user_batch_rating_uid = zip(rate_batch, user_batch)
+        batch_result = pool.map(func, user_batch_rating_uid)
+        count += len(batch_result)
+
+        for re in batch_result:
+            result['precision'] += re['precision']/n_test_users
+            result['recall'] += re['recall']/n_test_users
+            result['ndcg'] += re['ndcg']/n_test_users
+            result['hit_ratio'] += re['hit_ratio']/n_test_users
+            result['auc'] += re['auc']/n_test_users
+
+
+    assert count == n_test_users
+    pool.close()
+
+    return result['precision'].tolist(), result['recall'].tolist(), result['ndcg'].tolist()
 
 
 def get_total_parameters(model):
@@ -155,12 +290,14 @@ def exp_i(args, train_file, eval_file, test_file, logging):
         #  # top-K evaluation
         time0 = time()
         user_list, train_record, eval_record, item_set, k_list = topk_setting(train_data, eval_data, n_item)
-        eval_precision, eval_recall, eval_ndcg = topk_evaluate(model, n_item, user_list, train_record,
-                                                                   eval_record, k_list, device)
-
+        # eval_precision, eval_recall, eval_ndcg = topk_evaluate(model, n_item, user_list, train_record,
+        #                                                            eval_record, k_list, device)
+        eval_precision, eval_recall, eval_ndcg = test(model, n_item, user_list, train_record, eval_record, k_list, device)
         user_list, train_record, test_record, item_set, k_list = topk_setting(train_data, test_data, n_item)
-        test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
-                                                                   test_record, k_list, device)
+        # test_precision, test_recall, test_ndcg = topk_evaluate(model, n_item, user_list, train_record,
+        #                                                            test_record, k_list, device)
+        test_precision, test_recall, test_ndcg = test(model, n_item, user_list, train_record, test_record, k_list,
+                                                      device)
         time1 = time() - time0
 
         eval_precision_list.append(eval_precision)
