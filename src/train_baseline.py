@@ -363,7 +363,7 @@ def Exp_run(args):
     logging.info(args)
     logging.info('Run-exp-TopK_recommendation')
 
-    files = [1, 2, 3, 4, 5]
+    files = [1]
     recall_list = [[] for _ in range(6)]
     ndcg_list = [[] for _ in range(6)]
     for i in files:
