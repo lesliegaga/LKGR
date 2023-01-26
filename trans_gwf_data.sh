@@ -1,6 +1,6 @@
 
 
-dataset=last-fm_full
+dataset=movie-lens_full
 
 mkdir -p data/${dataset}
 python -u trans_gwf_data.py ../HGB/Data/${dataset}/train.txt data/${dataset}/train.txt 1
